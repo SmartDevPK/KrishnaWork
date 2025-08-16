@@ -1,15 +1,53 @@
 <?php
+session_start();
+
 require_once 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'];
 
     if ($action === 'register') {
-        // [Keep all your existing registration code exactly the same]
-        // Only change the redirect after successful registration if you want
-        header("Location: index.php"); // Or change to content.php if you want
-        exit();
+        // Registration logic
+        $username = trim($_POST['username']);
+        $email = trim($_POST['email']);
+        $password = trim($_POST['password']);
 
+        // Validate inputs
+        if (empty($username) || empty($email) || empty($password)) {
+            $_SESSION['register_error'] = "All fields are required";
+            header("Location: index.php");
+            exit();
+        }
+
+        // Check if user exists
+        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+        $stmt->bind_param("ss", $username, $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $_SESSION['register_error'] = "Username or email already exists";
+            header("Location: index.php");
+            exit();
+        }
+
+        // Hash password
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Insert new user
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $username, $email, $hashedPassword);
+
+        if ($stmt->execute()) {
+            $_SESSION['user_id'] = $stmt->insert_id;
+            $_SESSION['username'] = $username;
+            header("Location: index.php");
+            exit();
+        } else {
+            $_SESSION['register_error'] = "Registration failed. Please try again.";
+            header("Location: index.php");
+            exit();
+        }
     } elseif ($action === 'login') {
         // Login logic
         $username = trim($_POST['username']);
@@ -35,9 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
-
-                // CHANGE THIS LINE TO REDIRECT TO content.php
-                header("Location: content.php");
+                header("Location: profile.php");
                 exit();
             }
         }
@@ -48,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Default redirect if someone accesses auth.php directly
-header("Location: index.php");
+header("Location: content.php");
 exit();
 ?>

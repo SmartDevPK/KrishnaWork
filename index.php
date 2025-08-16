@@ -1,4 +1,6 @@
 <?php
+// session_start();
+
 require_once 'config.php';
 
 // Check if user is logged in
@@ -318,7 +320,7 @@ $loggedIn = isset($_SESSION['user_id']);
                     <h2>Login</h2>
                     <form action="auth.php" method="POST">
                         <input type="hidden" name="action" value="login">
-                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="text" name="username" placeholder="username" required>
                         <input type="password" name="password" placeholder="Password" required>
                         <button type="submit">Login</button>
                     </form>
@@ -415,7 +417,9 @@ $loggedIn = isset($_SESSION['user_id']);
     </div>
 
     <script>
-        // JavaScript functions
+        // ======================
+        // Authentication Functions
+        // ======================
         function switchAuthTab(tab) {
             const tabs = document.querySelectorAll('.auth-tab');
             tabs.forEach(t => t.classList.remove('active'));
@@ -431,32 +435,37 @@ $loggedIn = isset($_SESSION['user_id']);
             }
         }
 
+        // ======================
+        // Content Form Functions
+        // ======================
         function showAddForm() {
+            resetContentForm();
             document.getElementById('form-title').textContent = 'Add New Content';
             document.getElementById('form-action').value = 'add';
-            document.getElementById('content-id').value = '';
-            document.getElementById('content-title').value = '';
-            document.getElementById('content-body').value = '';
-            document.getElementById('content-image').value = '';
-            document.getElementById('image-preview').innerHTML = '';
             document.getElementById('content-form').style.display = 'block';
         }
 
         function editContent(id, title, body, imagePath) {
+            resetContentForm();
             document.getElementById('form-title').textContent = 'Edit Content';
             document.getElementById('form-action').value = 'edit';
             document.getElementById('content-id').value = id;
             document.getElementById('content-title').value = title;
             document.getElementById('content-body').value = body;
-            document.getElementById('content-image').value = '';
 
             if (imagePath) {
                 document.getElementById('image-preview').innerHTML = `<img src="${imagePath}" alt="Preview">`;
-            } else {
-                document.getElementById('image-preview').innerHTML = '';
             }
 
             document.getElementById('content-form').style.display = 'block';
+        }
+
+        function resetContentForm() {
+            document.getElementById('content-id').value = '';
+            document.getElementById('content-title').value = '';
+            document.getElementById('content-body').value = '';
+            document.getElementById('content-image').value = '';
+            document.getElementById('image-preview').innerHTML = '';
         }
 
         function cancelEdit() {
@@ -468,6 +477,9 @@ $loggedIn = isset($_SESSION['user_id']);
             document.getElementById('image-preview').innerHTML = '';
         }
 
+        // ======================
+        // Content Management Functions
+        // ======================
         function deleteContent(id) {
             if (confirm('Are you sure you want to delete this content?')) {
                 const form = document.createElement('form');
@@ -498,28 +510,55 @@ $loggedIn = isset($_SESSION['user_id']);
             items.forEach(item => {
                 const title = item.querySelector('h3').textContent.toLowerCase();
                 const body = item.querySelector('p').textContent.toLowerCase();
+                item.style.display = title.includes(query) || body.includes(query) ? 'block' : 'none';
+            });
+        }
 
-                if (title.includes(query) || body.includes(query)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
+        // ======================
+        // Image Handling
+        // ======================
+        function setupImagePreview() {
+            document.getElementById('content-image')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        document.getElementById('image-preview').innerHTML =
+                            `<img src="${event.target.result}" alt="Preview">`;
+                    };
+                    reader.readAsDataURL(file);
                 }
             });
         }
 
-        // Image preview functionality
-        document.getElementById('content-image').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    document.getElementById('image-preview').innerHTML =
-                        `<img src="${event.target.result}" alt="Preview">`;
-                };
-                reader.readAsDataURL(file);
+        // ======================
+        // Initialization
+        // ======================
+        function initializePage() {
+            // Show content section if user is logged in
+            const contentSection = document.getElementById('content-section');
+            if (contentSection) {
+                contentSection.style.display = 'block';
             }
-        });
+
+            // Switch auth tab based on URL parameter
+            const params = new URLSearchParams(window.location.search);
+            const auth = params.get('auth');
+
+            if (auth === 'login') {
+                switchAuthTab('login');
+            } else if (auth === 'register') {
+                switchAuthTab('register');
+            }
+
+            // Set up image preview
+            setupImagePreview();
+        }
+
+        // Run initialization when DOM is loaded
+        window.addEventListener('DOMContentLoaded', initializePage);
     </script>
+
 </body>
 
 </html>
