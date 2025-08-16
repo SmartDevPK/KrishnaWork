@@ -309,27 +309,35 @@ $loggedIn = isset($_SESSION['user_id']);
 <body>
     <div class="container">
         <?php if (!$loggedIn): ?>
-            <!-- Auth Section -->
+            <!-- Authentication Section -->
             <div id="auth-section" class="auth-section">
+
+                <!-- Tabs for Login/Register -->
                 <div class="auth-tabs">
                     <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
                     <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
                 </div>
 
+                <!-- Login Form -->
                 <div id="login-form" class="auth-form">
                     <h2>Login</h2>
                     <form action="auth.php" method="POST">
                         <input type="hidden" name="action" value="login">
-                        <input type="text" name="username" placeholder="username" required>
+                        <input type="text" name="username" placeholder="Username" required>
                         <input type="password" name="password" placeholder="Password" required>
                         <button type="submit">Login</button>
                     </form>
                     <?php if (isset($_SESSION['login_error'])): ?>
-                        <p class="error"><?php echo $_SESSION['login_error'];
-                        unset($_SESSION['login_error']); ?></p>
+                        <p class="error">
+                            <?php
+                            echo $_SESSION['login_error'];
+                            unset($_SESSION['login_error']);
+                            ?>
+                        </p>
                     <?php endif; ?>
                 </div>
 
+                <!-- Register Form -->
                 <div id="register-form" class="auth-form" style="display: none;">
                     <h2>Register</h2>
                     <form action="auth.php" method="POST">
@@ -340,78 +348,15 @@ $loggedIn = isset($_SESSION['user_id']);
                         <button type="submit">Register</button>
                     </form>
                     <?php if (isset($_SESSION['register_error'])): ?>
-                        <p class="error"><?php echo $_SESSION['register_error'];
-                        unset($_SESSION['register_error']); ?></p>
+                        <p class="error">
+                            <?php
+                            echo $_SESSION['register_error'];
+                            unset($_SESSION['register_error']);
+                            ?>
+                        </p>
                     <?php endif; ?>
                 </div>
-            </div>
-        <?php else: ?>
-            <!-- Content Management Section -->
-            <div id="content-section" class="content-section">
-                <div class="header">
-                    <h1>Content Management</h1>
-                    <a href="logout.php" class="logout-btn">Logout</a>
-                </div>
 
-                <div class="content-controls">
-                    <button onclick="showAddForm()">Add New Content</button>
-                    <div class="search-box">
-                        <input type="text" id="search-content" placeholder="Search content...">
-                        <button onclick="searchContent()">Search</button>
-                    </div>
-                </div>
-
-                <!-- Add/Edit Content Form -->
-                <div id="content-form" class="content-form" style="display: none;">
-                    <h2 id="form-title">Add New Content</h2>
-                    <form id="content-form-data" action="content.php" method="POST" enctype="multipart/form-data">
-                        <input type="hidden" name="action" id="form-action" value="add">
-                        <input type="hidden" name="content_id" id="content-id">
-                        <input type="text" name="title" id="content-title" placeholder="Title" required>
-                        <textarea name="body" id="content-body" placeholder="Content body" required></textarea>
-
-                        <div class="image-upload">
-                            <label for="content-image">Image:</label>
-                            <input type="file" name="image" id="content-image" accept="image/*">
-                            <div id="image-preview" class="image-preview"></div>
-                            <button type="button" onclick="removeImage()">Remove Image</button>
-                        </div>
-
-                        <div class="form-buttons">
-                            <button type="submit">Save</button>
-                            <button type="button" onclick="cancelEdit()">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Content List -->
-                <div id="content-list" class="content-list">
-                    <?php
-                    // Fetch content from database
-                    $stmt = $conn->prepare("SELECT * FROM contents WHERE user_id = ? ORDER BY updated_at DESC");
-                    $stmt->bind_param("i", $_SESSION['user_id']);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            echo '<div class="content-item">';
-                            echo '<h3>' . htmlspecialchars($row['title']) . '</h3>';
-                            echo '<p>' . nl2br(htmlspecialchars($row['body'])) . '</p>';
-                            if (!empty($row['image_path'])) {
-                                echo '<img src="' . htmlspecialchars($row['image_path']) . '" alt="Content Image">';
-                            }
-                            echo '<div class="item-actions">';
-                            echo '<button class="edit-btn" onclick="editContent(' . $row['id'] . ', \'' . addslashes($row['title']) . '\', \'' . addslashes($row['body']) . '\', \'' . addslashes($row['image_path']) . '\')">Edit</button>';
-                            echo '<button class="delete-btn" onclick="deleteContent(' . $row['id'] . ')">Delete</button>';
-                            echo '</div>';
-                            echo '</div>';
-                        }
-                    } else {
-                        echo '<p>No content found. Add some content to get started!</p>';
-                    }
-                    ?>
-                </div>
             </div>
         <?php endif; ?>
     </div>

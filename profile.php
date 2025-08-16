@@ -1,6 +1,4 @@
 <?php
-
-
 // Error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -15,21 +13,14 @@ define('DB_PASS', '');
 define('DB_NAME', 'cms_db');
 define('DB_PORT', 3307);
 
-
-try {
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
-
-    if ($conn->connect_error) {
-        throw new Exception("Database connection failed: " . $conn->connect_error);
-    }
-
-    $conn->set_charset("utf8mb4");
-} catch (Exception $e) {
-    die("Database error: " . $e->getMessage());
+// Connect to database
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
+if ($conn->connect_error) {
+    die("Database connection failed: " . $conn->connect_error);
 }
+$conn->set_charset("utf8mb4");
 
-
-
+// Check login
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -37,8 +28,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-
-
+// Handle POST (add/edit content)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_STRING);
     $title = trim(filter_input(INPUT_POST, 'title', FILTER_SANITIZE_STRING));
@@ -48,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $imagePath = $existing_image ?: '';
 
+    // Handle image upload
     if (!empty($_FILES['image']['name'])) {
         $uploadResult = handleFileUpload();
         if ($uploadResult['success']) {
@@ -57,36 +48,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    switch ($action) {
-        case 'add':
-            addContent($conn, $user_id, $title, $body, $imagePath);
-            break;
-        case 'edit':
-            updateContent($conn, $content_id, $title, $body, $imagePath);
-            break;
+    if ($action === 'add') {
+        addContent($conn, $user_id, $title, $body, $imagePath);
+    } elseif ($action === 'edit') {
+        updateContent($conn, $content_id, $title, $body, $imagePath);
     }
 
-    header("Location: " . filter_var($_SERVER['PHP_SELF'], FILTER_SANITIZE_URL));
+    header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
 
-
-
-if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+// Handle delete
+if (isset($_GET['action'], $_GET['id']) && $_GET['action'] === 'delete') {
     $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
     if ($id) {
         deleteContent($conn, $id);
-        header("Location: " . filter_var($_SERVER['PHP_SELF'], FILTER_SANITIZE_URL));
+        header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
 }
 
-
-
+// Fetch all contents
 $contents = fetchAllContents($conn);
 
-
+// ----------- FUNCTIONS -----------
 
 function handleFileUpload()
 {
@@ -105,11 +90,11 @@ function handleFileUpload()
     $targetFilePath = $targetDir . $fileName;
 
     if ($file['size'] > $maxFileSize) {
-        return ['success' => false, 'message' => 'File size exceeds 2MB limit'];
+        return ['success' => false, 'message' => 'File size exceeds 2MB'];
     }
 
     if (!in_array($fileType, $allowedTypes)) {
-        return ['success' => false, 'message' => 'Only JPG, PNG & GIF files are allowed'];
+        return ['success' => false, 'message' => 'Only JPG, PNG, GIF allowed'];
     }
 
     if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
@@ -123,11 +108,7 @@ function addContent($conn, $user_id, $title, $body, $imagePath)
 {
     $stmt = $conn->prepare("INSERT INTO contents (user_id, title, body, image_path, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
     $stmt->bind_param("isss", $user_id, $title, $body, $imagePath);
-
-    if (!$stmt->execute()) {
-        $_SESSION['error'] = "Failed to add content: " . $stmt->error;
-    }
-
+    $stmt->execute();
     $stmt->close();
 }
 
@@ -135,53 +116,45 @@ function updateContent($conn, $id, $title, $body, $imagePath)
 {
     $stmt = $conn->prepare("UPDATE contents SET title=?, body=?, image_path=?, updated_at=NOW() WHERE id=?");
     $stmt->bind_param("sssi", $title, $body, $imagePath, $id);
-
-    if (!$stmt->execute()) {
-        $_SESSION['error'] = "Failed to update content: " . $stmt->error;
-    }
-
+    $stmt->execute();
     $stmt->close();
 }
 
 function deleteContent($conn, $id)
 {
-    $stmt = $conn->prepare("SELECT image_path FROM contents WHERE id = ?");
+    // Delete image file
+    $stmt = $conn->prepare("SELECT image_path FROM contents WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
-
     if ($row && !empty($row['image_path']) && file_exists($row['image_path'])) {
         unlink($row['image_path']);
     }
+    $stmt->close();
 
-    $stmt = $conn->prepare("DELETE FROM contents WHERE id = ?");
+    // Delete record
+    $stmt = $conn->prepare("DELETE FROM contents WHERE id=?");
     $stmt->bind_param("i", $id);
-
-    if (!$stmt->execute()) {
-        $_SESSION['error'] = "Failed to delete content: " . $stmt->error;
-    }
-
+    $stmt->execute();
     $stmt->close();
 }
 
 function fetchAllContents($conn)
 {
     $contents = [];
-
-    $stmt = $conn->prepare("SELECT * FROM contents WHERE user_id = ? ORDER BY updated_at DESC");
+    $stmt = $conn->prepare("SELECT * FROM contents WHERE user_id=? ORDER BY updated_at DESC");
     $stmt->bind_param("i", $_SESSION['user_id']);
     $stmt->execute();
     $result = $stmt->get_result();
-
     while ($row = $result->fetch_assoc()) {
         $contents[] = $row;
     }
-
     $stmt->close();
     return $contents;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
