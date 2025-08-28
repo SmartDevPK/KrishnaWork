@@ -1,509 +1,343 @@
-<?php
-// session_start();
-
-require_once 'config.php';
-
-// Check if user is logged in
-$loggedIn = isset($_SESSION['user_id']);
-?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Management System</title>
-    <style>
-        /* CSS styles will go here */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Auth Section */
-        .auth-section {
-            background: white;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .auth-tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            color: #666;
-        }
-
-        .auth-tab.active {
-            color: #2c3e50;
-            border-bottom: 2px solid #2c3e50;
-        }
-
-        .auth-form {
-            padding: 20px 0;
-        }
-
-        .auth-form h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .auth-form input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        .auth-form button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        /* Content Section */
-        .content-section {
-            display: none;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-        }
-
-        .logout-btn {
-            padding: 8px 15px;
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .content-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .content-controls button {
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .search-box {
-            display: flex;
-        }
-
-        .search-box input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
-            font-size: 16px;
-        }
-
-        .search-box button {
-            padding: 10px 15px;
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-        }
-
-        /* Content Form */
-        .content-form {
-            display: none;
-            background: #f9f9f9;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-
-        .content-form h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .content-form input,
-        .content-form textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        .content-form textarea {
-            min-height: 150px;
-        }
-
-        .image-upload {
-            margin-bottom: 15px;
-        }
-
-        .image-upload label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .image-preview {
-            margin: 10px 0;
-            max-width: 300px;
-            max-height: 200px;
-            overflow: hidden;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .form-buttons button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .form-buttons button:first-child {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .form-buttons button:last-child {
-            background-color: #95a5a6;
-            color: white;
-        }
-
-        /* Content List */
-        .content-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .content-item {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-
-        .content-item h3 {
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-
-        .content-item p {
-            margin-bottom: 15px;
-            color: #555;
-        }
-
-        .content-item img {
-            max-width: 100%;
-            max-height: 200px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-
-        .content-item .item-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .content-item .item-actions button {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .content-item .item-actions button.edit-btn {
-            background-color: #3498db;
-            color: white;
-        }
-
-        .content-item .item-actions button.delete-btn {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .content-controls {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .content-list {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>Welcome - Sign In or Create Account</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
     <div class="container">
-        <?php if (!$loggedIn): ?>
-            <!-- Authentication Section -->
-            <div id="auth-section" class="auth-section">
+        <div class="logo">
+            <h1>JOIN US</h1>
+            <p>Your gateway to excellence</p>
+        </div>
 
-                <!-- Tabs for Login/Register -->
-                <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
-                    <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+        <div class="form-container">
+            <!-- Login Form -->
+            <div class="form active" id="loginForm">
+                <h2 class="form-title">Welcome Back</h2>
+
+                <div class="success-message" id="loginSuccess">
+                    Welcome back! Redirecting to your dashboard...
                 </div>
 
-                <!-- Login Form -->
-                <div id="login-form" class="auth-form">
-                    <h2>Login</h2>
-                    <form action="auth.php" method="POST">
-                        <input type="hidden" name="action" value="login">
-                        <input type="text" name="username" placeholder="Username" required>
-                        <input type="password" name="password" placeholder="Password" required>
-                        <button type="submit">Login</button>
-                    </form>
-                    <?php if (isset($_SESSION['login_error'])): ?>
-                        <p class="error">
-                            <?php
-                            echo $_SESSION['login_error'];
-                            unset($_SESSION['login_error']);
-                            ?>
-                        </p>
-                    <?php endif; ?>
+                <div class="error-message" id="loginError">
+                    Invalid credentials. Please try again.
                 </div>
 
-                <!-- Register Form -->
-                <div id="register-form" class="auth-form" style="display: none;">
-                    <h2>Register</h2>
-                    <form action="auth.php" method="POST">
-                        <input type="hidden" name="action" value="register">
-                        <input type="text" name="username" placeholder="Username" required>
-                        <input type="email" name="email" placeholder="Email" required>
-                        <input type="password" name="password" placeholder="Password" required>
-                        <button type="submit">Register</button>
-                    </form>
-                    <?php if (isset($_SESSION['register_error'])): ?>
-                        <p class="error">
-                            <?php
-                            echo $_SESSION['register_error'];
-                            unset($_SESSION['register_error']);
-                            ?>
-                        </p>
-                    <?php endif; ?>
-                </div>
+                <!-- <div class="social-login">
+                    <button class="social-btn" onclick="socialLogin('google')">
+                        <span>🔍</span> Google
+                    </button>
+                    <button class="social-btn" onclick="socialLogin('github')">
+                        <span>📱</span> GitHub
+                    </button>
+                </div> -->
 
+                <!-- <div class="divider">
+                    <span>or continue with email</span>
+                </div> -->
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </form>
+
+                <div class="form-links">
+                    <a href="#" onclick="showForm('forgotForm')">Forgot your password?</a>
+                    <br><br>
+                    Don't have an account?
+                    <a href="#" onclick="showForm('registerForm')">Create one now</a>
+                </div>
             </div>
-        <?php endif; ?>
+
+            <!-- Register Form -->
+            <div class="form" id="registerForm">
+                <h2 class="form-title">Create Account</h2>
+
+                <div class="success-message" id="registerSuccess">
+                    Account created successfully! Please check your email to verify.
+                </div>
+
+                <div class="error-message" id="registerError">
+                    Registration failed. Please try again.
+                </div>
+
+                <form onsubmit="handleRegister(event)">
+
+                    <!-- <div class="divider">
+                        <span>or create with email</span>
+                    </div> -->
+
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label for="registerName">Full Name</label>
+                            <input type="text" name="name" id="registerName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerEmail">Email Address</label>
+                            <input type="email" name="email" id="registerEmail" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" name="password" id="registerPassword" required
+                                oninput="checkPasswordStrength(this.value)">
+                            <div class="password-strength" id="passwordStrength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <span id="strengthText">Enter a password</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" required oninput="checkPasswordMatch()">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+
+                    <div class="form-links">
+                        Already have an account?
+                        <a href="#" onclick="showForm('loginForm')">Sign in here</a>
+                    </div>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div class="form" id="forgotForm">
+                <h2 class="form-title">Reset Password</h2>
+
+                <div class="success-message" id="forgotSuccess">
+                    Reset link sent! Check your email for instructions.
+                </div>
+
+                <div class="error-message" id="forgotError">
+                    Email not found. Please check your email address.
+                </div>
+
+                <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">
+                    Enter your email address and we'll send you a link to reset your password.
+                </p>
+
+                <form onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label for="forgotEmail">Email Address</label>
+                        <input type="email" id="forgotEmail" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Send Reset Link</button>
+                    <button type="button" class="btn btn-secondary" onclick="showForm('loginForm')">
+                        Back to Sign In
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ======================
-        // Authentication Functions
-        // ======================
-        function switchAuthTab(tab) {
-            const tabs = document.querySelectorAll('.auth-tab');
-            tabs.forEach(t => t.classList.remove('active'));
+        // Form switching functionality
+        function showForm(formId) {
+            const forms = document.querySelectorAll('.form');
+            forms.forEach(form => form.classList.remove('active'));
 
-            if (tab === 'login') {
-                document.querySelector('.auth-tab:first-child').classList.add('active');
-                document.getElementById('login-form').style.display = 'block';
-                document.getElementById('register-form').style.display = 'none';
+            document.getElementById(formId).classList.add('active');
+
+            // Hide all messages
+            hideAllMessages();
+        }
+
+        function hideAllMessages() {
+            const messages = document.querySelectorAll('.success-message, .error-message');
+            messages.forEach(msg => msg.style.display = 'none');
+        }
+
+        function showMessage(messageId, show = true) {
+            document.getElementById(messageId).style.display = show ? 'block' : 'none';
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const strengthElement = document.getElementById('passwordStrength');
+            const strengthText = document.getElementById('strengthText');
+
+            if (password.length === 0) {
+                strengthElement.className = 'password-strength';
+                strengthText.textContent = 'Enter a password';
+                return;
+            }
+
+            let strength = 0;
+            const checks = [
+                password.length >= 8,
+                /[a-z]/.test(password),
+                /[A-Z]/.test(password),
+                /[0-9]/.test(password),
+                /[^a-zA-Z0-9]/.test(password)
+            ];
+
+            strength = checks.filter(check => check).length;
+
+            if (strength < 3) {
+                strengthElement.className = 'password-strength strength-weak';
+                strengthText.textContent = 'Weak password';
+            } else if (strength < 5) {
+                strengthElement.className = 'password-strength strength-medium';
+                strengthText.textContent = 'Medium password';
             } else {
-                document.querySelector('.auth-tab:last-child').classList.add('active');
-                document.getElementById('login-form').style.display = 'none';
-                document.getElementById('register-form').style.display = 'block';
+                strengthElement.className = 'password-strength strength-strong';
+                strengthText.textContent = 'Strong password';
             }
         }
 
-        // ======================
-        // Content Form Functions
-        // ======================
-        function showAddForm() {
-            resetContentForm();
-            document.getElementById('form-title').textContent = 'Add New Content';
-            document.getElementById('form-action').value = 'add';
-            document.getElementById('content-form').style.display = 'block';
-        }
+        function checkPasswordMatch() {
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const confirmInput = document.getElementById('confirmPassword');
 
-        function editContent(id, title, body, imagePath) {
-            resetContentForm();
-            document.getElementById('form-title').textContent = 'Edit Content';
-            document.getElementById('form-action').value = 'edit';
-            document.getElementById('content-id').value = id;
-            document.getElementById('content-title').value = title;
-            document.getElementById('content-body').value = body;
-
-            if (imagePath) {
-                document.getElementById('image-preview').innerHTML = `<img src="${imagePath}" alt="Preview">`;
+            if (confirmPassword === '') {
+                confirmInput.style.borderColor = '#e5e7eb';
+                return;
             }
 
-            document.getElementById('content-form').style.display = 'block';
-        }
-
-        function resetContentForm() {
-            document.getElementById('content-id').value = '';
-            document.getElementById('content-title').value = '';
-            document.getElementById('content-body').value = '';
-            document.getElementById('content-image').value = '';
-            document.getElementById('image-preview').innerHTML = '';
-        }
-
-        function cancelEdit() {
-            document.getElementById('content-form').style.display = 'none';
-        }
-
-        function removeImage() {
-            document.getElementById('content-image').value = '';
-            document.getElementById('image-preview').innerHTML = '';
-        }
-
-        // ======================
-        // Content Management Functions
-        // ======================
-        function deleteContent(id) {
-            if (confirm('Are you sure you want to delete this content?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'content.php';
-
-                const inputAction = document.createElement('input');
-                inputAction.type = 'hidden';
-                inputAction.name = 'action';
-                inputAction.value = 'delete';
-                form.appendChild(inputAction);
-
-                const inputId = document.createElement('input');
-                inputId.type = 'hidden';
-                inputId.name = 'content_id';
-                inputId.value = id;
-                form.appendChild(inputId);
-
-                document.body.appendChild(form);
-                form.submit();
+            if (password === confirmPassword) {
+                confirmInput.style.borderColor = '#10b981';
+            } else {
+                confirmInput.style.borderColor = '#ef4444';
             }
         }
 
-        function searchContent() {
-            const query = document.getElementById('search-content').value.toLowerCase();
-            const items = document.querySelectorAll('.content-item');
+        // Form submission handlers
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
-            items.forEach(item => {
-                const title = item.querySelector('h3').textContent.toLowerCase();
-                const body = item.querySelector('p').textContent.toLowerCase();
-                item.style.display = title.includes(query) || body.includes(query) ? 'block' : 'none';
-            });
-        }
+            hideAllMessages();
 
-        // ======================
-        // Image Handling
-        // ======================
-        function setupImagePreview() {
-            document.getElementById('content-image')?.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                        document.getElementById('image-preview').innerHTML =
-                            `<img src="${event.target.result}" alt="Preview">`;
-                    };
-                    reader.readAsDataURL(file);
+            // Simulate API call
+            setTimeout(() => {
+                if (email && password) {
+                    showMessage('loginSuccess');
+                    setTimeout(() => {
+                        alert('Login successful! (This is a demo)');
+                    }, 1500);
+                } else {
+                    showMessage('loginError');
                 }
+            }, 1000);
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            hideAllMessages();
+
+            if (password !== confirmPassword) {
+                showMessage('registerError');
+                document.getElementById('registerError').textContent = 'Passwords do not match';
+                return;
+            }
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('action', 'register'); // important for PHP
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('register.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.text();
+
+                if (result.includes('green')) { // success
+                    showMessage('registerSuccess');
+                    document.getElementById('registerSuccess').innerHTML = result;
+                    document.getElementById('registerName').value = '';
+                    document.getElementById('registerEmail').value = '';
+                    document.getElementById('registerPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    setTimeout(() => showForm('loginForm'), 2000);
+                } else { // error
+                    showMessage('registerError');
+                    document.getElementById('registerError').innerHTML = result;
+                }
+            } catch (err) {
+                showMessage('registerError');
+                document.getElementById('registerError').textContent = 'Error submitting form.';
+            }
+        }
+
+
+        function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+
+            hideAllMessages();
+
+            // Simulate API call
+            setTimeout(() => {
+                if (email) {
+                    showMessage('forgotSuccess');
+                    setTimeout(() => {
+                        showForm('loginForm');
+                    }, 2000);
+                } else {
+                    showMessage('forgotError');
+                }
+            }, 1000);
+        }
+
+        function socialLogin(provider) {
+            alert(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login clicked! (This is a demo)`);
+        }
+
+        // Add some interactive elements
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add subtle animations to form elements
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function () {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+
+                input.addEventListener('blur', function () {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
             });
-        }
-
-        // ======================
-        // Initialization
-        // ======================
-        function initializePage() {
-            // Show content section if user is logged in
-            const contentSection = document.getElementById('content-section');
-            if (contentSection) {
-                contentSection.style.display = 'block';
-            }
-
-            // Switch auth tab based on URL parameter
-            const params = new URLSearchParams(window.location.search);
-            const auth = params.get('auth');
-
-            if (auth === 'login') {
-                switchAuthTab('login');
-            } else if (auth === 'register') {
-                switchAuthTab('register');
-            }
-
-            // Set up image preview
-            setupImagePreview();
-        }
-
-        // Run initialization when DOM is loaded
-        window.addEventListener('DOMContentLoaded', initializePage);
+        });
     </script>
-
 </body>
 
 </html>
