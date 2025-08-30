@@ -142,19 +142,19 @@
                     Enter your email address and we'll send you a link to reset your password.
                 </p>
 
-                <form onsubmit="handleForgotPassword(event)">
-                    <div class="form-group">
-                        <label for="forgotEmail">Email Address</label>
-                        <input type="email" id="forgotEmail" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Send Reset Link</button>
-                    <button type="button" class="btn btn-secondary" onclick="showForm('loginForm')">
-                        Back to Sign In
-                    </button>
-                </form>
+                <form action="forgot_password.php" method="POST" ">
+                    <div class=" form-group">
+                    <label for="forgotEmail">Email Address</label>
+                    <input type="email" name="email" id="forgotEmail" required>
             </div>
+
+            <button type="submit" class="btn btn-primary">Send Reset Link</button>
+            <button type="button" class="btn btn-secondary" onclick="showForm('loginForm')">
+                Back to Sign In
+            </button>
+            </form>
         </div>
+    </div>
     </div>
 
     <script>
@@ -241,14 +241,17 @@
             setTimeout(() => {
                 if (email && password) {
                     showMessage('loginSuccess');
+
+                    // Redirect to dashboard after 1.5 seconds
                     setTimeout(() => {
-                        alert('Login successful! (This is a demo)');
+                        window.location.href = 'dashboard.php'; // Change this to your dashboard URL
                     }, 1500);
                 } else {
                     showMessage('loginError');
                 }
             }, 1000);
         }
+
 
         async function handleRegister(event) {
             event.preventDefault();
@@ -300,27 +303,33 @@
         }
 
 
-        function handleForgotPassword(event) {
+        async function handleForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('forgotEmail').value;
 
             hideAllMessages();
 
-            // Simulate API call
-            setTimeout(() => {
-                if (email) {
+            try {
+                const formData = new FormData();
+                formData.append('email', email);
+
+                const response = await fetch('forgot_password.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
                     showMessage('forgotSuccess');
-                    setTimeout(() => {
-                        showForm('loginForm');
-                    }, 2000);
                 } else {
+                    document.getElementById('forgotError').textContent = result.message;
                     showMessage('forgotError');
                 }
-            }, 1000);
-        }
-
-        function socialLogin(provider) {
-            alert(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login clicked! (This is a demo)`);
+            } catch (err) {
+                document.getElementById('forgotError').textContent = 'Server error. Please try again.';
+                showMessage('forgotError');
+            }
         }
 
         // Add some interactive elements
