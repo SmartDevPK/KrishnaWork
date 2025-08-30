@@ -1,0 +1,27 @@
+# Ignore vendor folder (composer dependencies)
+vendor/
+
+# Ignore database files or backups
+*.db
+*.sqlite
+db.php   # if this contains sensitive credentials
+
+# Ignore environment files
+.env
+.env.local
+
+forgot_password.php
+
+reset_password.php
+
+
+# Ignore logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
