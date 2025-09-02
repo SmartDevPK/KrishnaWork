@@ -1,17 +1,21 @@
 <?php
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
+header('Content-Type: application/json');
 
 $host = "localhost";
+$port = 3307;
 $user = "root";
 $pass = "";
 $db = "user_system";
 
-$conn = new mysqli($host, $user, $pass, $db);
+// Create connection
+$conn = new mysqli($host, $user, $pass, $db, $port);
 
+// Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Error connecting to server: " . $conn->connect_error
+    ]);
+    exit;
 }
-//vfav ycsh zccq lvrs
-
 ?>

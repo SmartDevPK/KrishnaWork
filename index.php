@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -437,7 +441,7 @@
                 </div>
                 -->
 
-                <form id="registerFormElement">
+                <form id="registerFormElement" action="register.php" method="POST">
                     <div class="form-group">
                         <label for="registerName">Full Name</label>
                         <input type="text" name="name" id="registerName" required>
