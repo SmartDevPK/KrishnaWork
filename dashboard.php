@@ -487,8 +487,31 @@ if (!isset($_SESSION['user_id'])) {
             transform: translateX(0);
             opacity: 1;
         }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
+
+<?php if (isset($_SESSION['success'])): ?>
+    <p style="color: green;"><?= $_SESSION['success']; ?></p>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error'])): ?>
+    <p style="color: red;"><?= $_SESSION['error']; ?></p>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
 
 <body>
     <div class="dashboard-container">
@@ -509,25 +532,31 @@ if (!isset($_SESSION['user_id'])) {
 
                 <div class="center-content">
                     <div class="form-section">
-                        <div class="form-group">
-                            <label for="companyName">Company Name</label>
-                            <input type="text" id="companyName" placeholder="Enter your company name" required>
-                        </div>
+                        <form method="POST" action="dashboard_page.php">
+                            <div class="form-group">
+                                <label for="companyName">Company Name</label>
+                                <input type="text" name="companyName" id="companyName"
+                                    placeholder="Enter your company name" required>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="title">Title</label>
-                            <input type="text" id="title" placeholder="Enter title" required>
-                        </div>
+                            <div class="form-group">
+                                <label for="title">Title</label>
+                                <input type="text" name="title" id="title" placeholder="Enter title" required>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea id="description" placeholder="Enter description" required rows="3"></textarea>
-                        </div>
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea name="description" id="description" placeholder="Enter description" required
+                                    rows="3"></textarea>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="tags">Tags</label>
-                            <input type="text" id="tags" placeholder="e.g., tech, startup" required>
-                        </div>
+                            <div class="form-group">
+                                <label for="tags">Tags</label>
+                                <input type="text" name="tags" id="tags" placeholder="e.g., tech, startup" required>
+                            </div>
+
+                            <button type="submit">Submit</button>
+                        </form>
                     </div>
                 </div>
 
@@ -539,44 +568,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
 
-        <!-- Image Upload Section -->
-        <div class="section">
-            <h2 class="section-title"><i class="fas fa-upload"></i> Upload Company Image</h2>
-            <div class="container">
-                <div class="side-box">
-                    <i class="fas fa-images"></i>
-                    <h3>Image Upload</h3>
-                    <p>JPG, PNG or GIF</p>
-                </div>
 
-                <div class="center-content">
-                    <div class="upload-section">
-                        <button type="button" class="upload-btn"
-                            onclick="document.getElementById('imageUpload').click();">
-                            <i class="fas fa-file-image"></i> Choose Image
-                        </button>
-                        <button type="button" class="upload-btn submit-btn" id="uploadSubmit">
-                            <i class="fas fa-cloud-upload-alt"></i> Upload
-                        </button>
-
-                        <div class="image-preview">
-                            <p id="previewText">Image preview will appear here</p>
-                            <img id="previewImage" src="" alt="Preview" style="display: none;">
-                        </div>
-
-                        <form action="upload.php" method="POST" enctype="multipart/form-data" style="display: none;">
-                            <input type="file" id="imageUpload" name="image" accept="image/*">
-                        </form>
-                    </div>
-                </div>
-
-                <div class="side-box">
-                    <i class="fas fa-camera"></i>
-                    <h3>Image Tips</h3>
-                    <p>Use high-quality images</p>
-                </div>
-            </div>
-        </div>
 
         <!-- Who We Are Section -->
         <div class="section">
